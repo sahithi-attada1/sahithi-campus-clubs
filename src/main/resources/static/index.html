@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab – Club Directory</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 750px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f7f5;
+        }
+
+        h1 {
+            color: #267a42;
+        }
+
+        li {
+            margin: 10px 0;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            background: #267a42;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+        }
+
+        #message {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Campus Club Directory</h1>
+
+<h2>Available Clubs</h2>
+
+<!-- Clubs come from /api/clubs -->
+<ul id="clubs"></ul>
+
+<h2>Add a Club</h2>
+
+<form id="clubForm">
+    <input id="name" placeholder="Club Name" required>
+    <input id="category" placeholder="Category" required>
+    <input id="meetingDay" placeholder="Meeting Day" required>
+    <input id="room" placeholder="Room (optional)">
+
+    <button type="submit">Add Club</button>
+</form>
+
+<p id="message"></p>
+
+<script>
+    async function loadClubs() {
+        const response = await fetch("/api/clubs");
+        const clubs = await response.json();
+
+        const list = document.getElementById("clubs");
+        list.innerHTML = "";
+
+        for (const club of clubs) {
+            const li = document.createElement("li");
+
+            li.textContent =
+                club.name + " – " +
+                club.category + ", " +
+                club.meetingDay +
+                (club.room ? ", " + club.room : "");
+
+            list.appendChild(li);
+        }
+    }
+
+    document.getElementById("clubForm")
+        .addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const club = {
+                name: document.getElementById("name").value,
+                category: document.getElementById("category").value,
+                meetingDay: document.getElementById("meetingDay").value,
+                room: document.getElementById("room").value
+            };
+
+            const response = await fetch("/api/clubs", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(club)
+            });
+
+            if (response.ok) {
+                event.target.reset();
+                document.getElementById("message").textContent = "";
+                await loadClubs();
+            } else {
+                document.getElementById("message").textContent =
+                    "Please fill in name, category and meeting day.";
+            }
+        });
+
+    loadClubs();
+</script>
+
+</body>
+</html>
